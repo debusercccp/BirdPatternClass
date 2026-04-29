@@ -190,6 +190,7 @@ Il comando genera un report testuale (classification_report) e un grafico multip
  Curva Silhouette: Analisi per la scelta del numero di cluster K.
  Curve Precision-Recall: Performance del clustering per ogni singola specie.
  Matrice Cluster-Specie: Heatmap che mostra la distribuzione delle finestre temporali tra i vari cluster.
+
 ---
 
 ## Parametri principali
