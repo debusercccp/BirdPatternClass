@@ -180,8 +180,3 @@ print(result["errors"])          # MSE per ogni finestra
 
 ---
 
-## Note su edge deployment (Raspberry Pi)
-
-Su hardware vincolato ridurre `d_model` (es. 64), `num_layers` (es. 2)
-e `num_heads` (es. 2). In alternativa usare la versione LSTM della stessa
-pipeline, che ha latenza di inferenza inferiore a parita' di window_size.
