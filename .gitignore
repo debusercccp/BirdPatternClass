@@ -1,0 +1,45 @@
+# modelli salvati
+*.keras
+*.h5
+*.pkl
+*.pt
+*.pth
+
+# dataset e audio
+*.wav
+*.mp3
+*.ogg
+*.flac
+*.aac
+
+# output training
+*_analysis.png
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# Nix / NixOS
+result
+result-*
+.direnv/
+
+# editor
+.vim/
+.nvim/
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
