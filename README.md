@@ -160,6 +160,37 @@ print(result["errors"])          # MSE per ogni finestra
 ```
 
 ---
+## Valutazione e Clustering (Latent Space)
+
+Il modulo evaluate.py permette di analizzare la qualità dello spazio latente appreso dall'encoder. È fondamentale per capire se il modello ha raggruppato correttamente i suoni di specie diverse senza essere stato addestrato esplicitamente a farlo (apprendimento non supervisionato).
+
+Flusso di analisi
+
+    Estrazione: Trasforma le finestre audio in vettori latenti (128-d) tramite l'encoder.
+    Riduzione dimensionale: Proietta lo spazio a 2D tramite UMAP (o PCA) per la visualizzazione.
+    Ottimizzazione Cluster: Esegue una ricerca del numero ottimale di cluster (K) calcolando il Silhouette Score.
+    Associazione Specie: Ogni cluster viene mappato alla specie più frequente al suo interno (majority vote sulle label reali).
+    Metriche: Calcola Precision, Recall e curve Precision-Recall (one-vs-rest) per valutare quanto i cluster siano puri.
+
+
+```python
+python evaluate.py \
+  --data_dir ./dataset \
+  --model bird_model \
+  --k_min 2 \
+  --k_max 15 \
+  --plot
+```
+
+Output generato
+
+Il comando genera un report testuale (classification_report) e un grafico multipannello evaluation.png che include:
+
+    Scatter Plot Latente: Visualizzazione dei cluster trovati vs. specie reali (ground truth).
+    Curva Silhouette: Analisi per la scelta del numero di cluster K.
+    Curve Precision-Recall: Performance del clustering per ogni singola specie.
+    Matrice Cluster-Specie: Heatmap che mostra la distribuzione delle finestre temporali tra i vari cluster.
+---
 
 ## Parametri principali
 
