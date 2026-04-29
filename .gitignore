@@ -12,6 +12,9 @@
 *.flac
 *.aac
 
+# Immagini
+.png
+
 # output training
 *_analysis.png
 *.log
