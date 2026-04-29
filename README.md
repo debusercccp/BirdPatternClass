@@ -166,11 +166,11 @@ Il modulo evaluate.py permette di analizzare la qualità dello spazio latente ap
 
 Flusso di analisi
 
-    Estrazione: Trasforma le finestre audio in vettori latenti (128-d) tramite l'encoder.
-    Riduzione dimensionale: Proietta lo spazio a 2D tramite UMAP (o PCA) per la visualizzazione.
-    Ottimizzazione Cluster: Esegue una ricerca del numero ottimale di cluster (K) calcolando il Silhouette Score.
-    Associazione Specie: Ogni cluster viene mappato alla specie più frequente al suo interno (majority vote sulle label reali).
-    Metriche: Calcola Precision, Recall e curve Precision-Recall (one-vs-rest) per valutare quanto i cluster siano puri.
+ Estrazione: Trasforma le finestre audio in vettori latenti (128-d) tramite l'encoder.
+ Riduzione dimensionale: Proietta lo spazio a 2D tramite UMAP (o PCA) per la visualizzazione.
+ Ottimizzazione Cluster: Esegue una ricerca del numero ottimale di cluster (K) calcolando il Silhouette Score.
+ Associazione Specie: Ogni cluster viene mappato alla specie più frequente al suo interno (majority vote sulle label reali).
+ Metriche: Calcola Precision, Recall e curve Precision-Recall (one-vs-rest) per valutare quanto i cluster siano puri.
 
 
 ```python
@@ -186,10 +186,10 @@ Output generato
 
 Il comando genera un report testuale (classification_report) e un grafico multipannello evaluation.png che include:
 
-    Scatter Plot Latente: Visualizzazione dei cluster trovati vs. specie reali (ground truth).
-    Curva Silhouette: Analisi per la scelta del numero di cluster K.
-    Curve Precision-Recall: Performance del clustering per ogni singola specie.
-    Matrice Cluster-Specie: Heatmap che mostra la distribuzione delle finestre temporali tra i vari cluster.
+ Scatter Plot Latente: Visualizzazione dei cluster trovati vs. specie reali (ground truth).
+ Curva Silhouette: Analisi per la scelta del numero di cluster K.
+ Curve Precision-Recall: Performance del clustering per ogni singola specie.
+ Matrice Cluster-Specie: Heatmap che mostra la distribuzione delle finestre temporali tra i vari cluster.
 ---
 
 ## Parametri principali
