@@ -102,7 +102,7 @@ def find_optimal_k(
     Z: np.ndarray,
     k_min: int = 2,
     k_max: int = 12,
-) -> tuple[int, list[float]]:
+) -> tuple[int, list[float], list[int]]:
     """
     Prova K da k_min a k_max e restituisce il K con silhouette massimo.
     """
@@ -299,7 +299,7 @@ def main():
 
     # 1) Carica modelli e pipeline
     print(f"Caricamento modello: {args.model}")
-    autoencoder, encoder = load_models(args.model)
+    _, encoder = load_models(args.model)
 
     print(f"Caricamento pipeline: {pipeline_path}")
     with open(pipeline_path, "rb") as f:

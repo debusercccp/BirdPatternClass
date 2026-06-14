@@ -46,6 +46,7 @@ class PositionalEncoding(layers.Layer):
 
     def __init__(self, max_len: int = 512, d_model: int = D_MODEL, **kwargs):
         super().__init__(**kwargs)
+        self.max_len = max_len
         self.d_model = d_model
 
         positions = np.arange(max_len)[:, np.newaxis]           # (max_len, 1)
@@ -63,7 +64,7 @@ class PositionalEncoding(layers.Layer):
 
     def get_config(self):
         cfg = super().get_config()
-        cfg.update({"d_model": self.d_model})
+        cfg.update({"max_len": self.max_len, "d_model": self.d_model})
         return cfg
 
 
@@ -133,6 +134,7 @@ class TransformerDecoderBlock(layers.Layer):
         # unpacking automatico quando il layer viene chiamato con piu' tensori
         x, encoder_out = inputs
 
+        # self-attention senza maschera causale (autoencoder, non generativo)
         sa = self.self_attn(x, x, training=training)
         x  = self.norm1(x + self.drop1(sa, training=training))
 
@@ -234,11 +236,13 @@ def train_autoencoder(
     epochs: int = 50,
     batch_size: int = 32,
 ) -> tf.keras.callbacks.History:
+    has_val = X_val is not None
+    monitor = "val_loss" if has_val else "loss"
     callbacks = [
-        EarlyStopping(patience=7, restore_best_weights=True, monitor="val_loss"),
-        ReduceLROnPlateau(factor=0.5, patience=3, min_lr=1e-6, monitor="val_loss"),
+        EarlyStopping(patience=7, restore_best_weights=True, monitor=monitor),
+        ReduceLROnPlateau(factor=0.5, patience=3, min_lr=1e-6, monitor=monitor),
     ]
-    val_data = (X_val, X_val) if X_val is not None else None
+    val_data = (X_val, X_val) if has_val else None
     return model.fit(
         X_train, X_train,
         validation_data=val_data,

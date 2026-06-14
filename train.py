@@ -15,7 +15,6 @@ Cartella piatta (nessuna sottocartella) = modalita' autoencoder pura.
 
 import argparse
 import glob
-import os
 import pickle
 from pathlib import Path
 
@@ -84,13 +83,20 @@ def main():
         pickle.dump(pipeline, f)
     print(f"      Pipeline salvata: {pipeline_path}")
 
-    # 3) Split
-    print("\n[3/5] Split train/val...")
-    X_train, X_val = train_test_split(X, test_size=args.val_split, random_state=42)
-    print(f"      Train: {X_train.shape[0]}  Val: {X_val.shape[0]}")
+    # Propaga le label di file alle finestre usando origins_ del SequenceBuilder
+    seq_builder = pipeline.named_steps["sequences"]
+    win_labels  = np.array([labels[o[0]] for o in seq_builder.origins_])
 
     n_features = X.shape[2]
     n_classes  = len(species_names) if len(species_names) > 1 else None
+
+    # 3) Split
+    print("\n[3/5] Split train/val...")
+    X_train, X_val, y_train, y_val = train_test_split(
+        X, win_labels, test_size=args.val_split, random_state=42,
+        stratify=win_labels if n_classes is not None else None,
+    )
+    print(f"      Train: {X_train.shape[0]}  Val: {X_val.shape[0]}")
 
     # 4) Modello
     print("\n[4/5] Build Transformer autoencoder...")
@@ -103,18 +109,34 @@ def main():
         n_classes=n_classes,
     )
     autoencoder, encoder = result[0], result[1]
+    classifier = result[2] if n_classes is not None else None
     autoencoder.summary()
 
-    print("\n      Training...")
+    print("\n      Training autoencoder...")
     history = train_autoencoder(
         autoencoder, X_train, X_val,
         epochs=args.epochs,
         batch_size=args.batch,
     )
 
+    if classifier is not None:
+        print("\n      Training classifier...")
+        classifier.fit(
+            X_train, y_train,
+            validation_data=(X_val, y_val),
+            epochs=args.epochs,
+            batch_size=args.batch,
+            callbacks=[],
+            verbose=1,
+        )
+
     # 5) Salvataggio
     print("\n[5/5] Salvataggio...")
     save_models(autoencoder, encoder, prefix=args.save)
+    if classifier is not None:
+        cls_path = f"{args.save}_classifier.keras"
+        classifier.save(cls_path)
+        print(f"Salvato: {cls_path}")
 
     errors, is_pattern, thr = detect_repeated_patterns(autoencoder, X)
     print(f"\nAnalisi pattern su tutto il dataset:")

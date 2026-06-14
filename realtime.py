@@ -92,14 +92,13 @@ class BirdPatternDetector:
     Cattura audio in streaming e predice pattern ripetuti in tempo reale.
 
     Uso:
-        detector = BirdPatternDetector(autoencoder, encoder, scaler, threshold=0.05)
+        detector = BirdPatternDetector(autoencoder, scaler=scaler, threshold=0.05)
         detector.start()   # blocca fino a Ctrl+C
     """
 
     def __init__(
         self,
         autoencoder: tf.keras.Model,
-        encoder: tf.keras.Model,
         scaler=None,
         sr: int = SR,
         chunk_duration: float = 2.0,
@@ -107,13 +106,13 @@ class BirdPatternDetector:
         device: Optional[int] = None,
         duration: Optional[float] = None,
     ):
-        self.autoencoder   = autoencoder
-        self.encoder       = encoder
-        self.scaler        = scaler
-        self.sr            = sr
-        self.chunk_samples = int(sr * chunk_duration)
-        self.threshold     = threshold
-        self.device        = device
+        self.autoencoder    = autoencoder
+        self.scaler         = scaler
+        self.sr             = sr
+        self._chunk_duration = chunk_duration
+        self.chunk_samples  = int(sr * chunk_duration)
+        self.threshold      = threshold
+        self.device         = device
 
         self.duration  = duration
         self._buffer  = RingBuffer(maxlen=self.chunk_samples * 4)
@@ -162,10 +161,12 @@ class BirdPatternDetector:
         native_sr  = int(dev_info["default_samplerate"])
         if n_channels == 0:
             raise RuntimeError(f"Il device selezionato non ha canali di input: {dev_info['name']}")
-        # Usa il sample rate nativo se non e' stato forzato dall'utente
         if self.sr != native_sr:
             print(f"Nota: device nativo a {native_sr} Hz, ricampionamento a {SR} Hz attivo.")
         self.sr = native_sr
+        # Ricalcola chunk_samples con il sample rate reale del device
+        self.chunk_samples = int(native_sr * self._chunk_duration)
+        self._buffer = RingBuffer(maxlen=self.chunk_samples * 4)
 
         print(f"Device  : {dev_info['name']}")
         print(f"Canali  : {n_channels}")
@@ -251,6 +252,8 @@ def predict_file(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Bird pattern detector - realtime")
     parser.add_argument("--model",        default="bird_model")
+    parser.add_argument("--pipeline",     default=None,
+                        help="Percorso pipeline .pkl (default: <model>_pipeline.pkl)")
     parser.add_argument("--threshold",    type=float, default=0.05)
     parser.add_argument("--device",       type=int,   default=1,
                         help="ID device audio (default 1)")
@@ -266,12 +269,18 @@ if __name__ == "__main__":
         raise SystemExit(0)
 
     print(f"Caricamento modello: {args.model}_autoencoder.keras")
-    autoencoder, encoder = load_models(args.model)
+    autoencoder, _ = load_models(args.model)
+
+    # Estrai lo scaler dalla pipeline salvata per normalizzare le feature come in training
+    import pickle as _pickle
+    pipeline_path = args.pipeline or f"{args.model}_pipeline.pkl"
+    with open(pipeline_path, "rb") as _f:
+        _pipeline = _pickle.load(_f)
+    scaler = _pipeline.named_steps["normalizer"].scaler
 
     detector = BirdPatternDetector(
         autoencoder=autoencoder,
-        encoder=encoder,
-        scaler=None,
+        scaler=scaler,
         sr=args.sr,
         threshold=args.threshold,
         device=args.device,
